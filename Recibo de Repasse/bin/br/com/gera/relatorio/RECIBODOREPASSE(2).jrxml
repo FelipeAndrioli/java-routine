@@ -1,0 +1,701 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="RECIBODOREPASSE" pageWidth="612" pageHeight="792" columnWidth="588" leftMargin="12" rightMargin="12" topMargin="10" bottomMargin="10" isFloatColumnFooter="true" uuid="19865bc0-9d6e-4068-b0d6-250328a1dabe">
+	<property name="ireport.zoom" value="1.2396694214876032"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="table">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<parameter name="PK_NUFIN" class="java.math.BigDecimal" isForPrompting="false">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["C:\\Users\\Bruno\\Desktop\\roca\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="PDIR_MODELO" class="java.lang.String" isForPrompting="false">
+		<parameterDescription><![CDATA["./"]]></parameterDescription>
+	</parameter>
+	<parameter name="NUF" class="java.math.BigDecimal">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT DUPLICAR,
+         (SELECT REPLACE (INITCAP (emp.razaosocial), ' De ', ' de ')
+            FROM tsiemp emp
+                 INNER JOIN tsiend en
+                    ON (en.codend = emp.codend)
+                 INNER JOIN tsibai bai
+                    ON (bai.codbai = emp.codbai)
+                 INNER JOIN tsicid cid
+                    ON (cid.codcid = emp.codcid)
+                 INNER JOIN tsiufs ufs
+                    ON (ufs.coduf = cid.uf)
+           WHERE emp.codemp = 1)
+            ASSINATURA,
+         REP.TIMNUFINORIG NUFIN,
+         REP.CODPARC,
+         TO_NUMBER(REP.VLRDESDOB) SALDO,
+         LOCCODIGO CONTRATO,
+         (CASE IMP.TIPPESSOA WHEN 'J' THEN 'CNPJ: ' ELSE 'CPF: ' END)
+            CPF_CNPJ_LABEL_IMP,
+         (CASE INQ.TIPPESSOA WHEN 'J' THEN 'CNPJ: ' ELSE 'CPF: ' END)
+            CPF_CNPJ_LABEL_INQ,
+         REP.TIMNUFINORIG,
+         UPPER (NVL (INQ.RAZAOSOCIAL, INQ.NOMEPARC)) INQUILINO,
+         UPPER (NVL (IMP.RAZAOSOCIAL, IMP.NOMEPARC)) LOCADOR,
+         IMP.CGC_CPF,
+         CID.NOMECID,
+         CASE
+            WHEN LOCGARANTIDO = 'S' THEN 'SIM'
+            WHEN LOCGARANTIDO = 'N' THEN 'NAO'
+         END
+            AS GARANTIDO,
+         CASE
+            WHEN LOCGARANTIDO = 'S' THEN 'GI'
+            WHEN LOCGARANTIDO = 'N' THEN 'GP'
+         END
+            AS GIGPDE,
+         TIM_DNORM_END_CONTRAT_ROCA (IMV.IMVCODEND,
+                                     IMV.IMVNUMERO,
+                                     IMV.IMVCOMPLEMENTO,
+                                     IMV.IMVAPTO,
+                                     IMV.IMVBAIRRO,
+                                     IMV.IMVCIDADE,
+                                     IMV.IMVCEP,
+                                     IMV.IMVEDIFICIO)
+            IMVDESCRICAOCOMPLETA,
+         TIM_DNORM_END_CONTRAT_ROCA (IMP.CODEND,
+                                     IMP.NUMEND,
+                                     IMP.COMPLEMENTO,
+                                     NULL,
+                                     IMP.CODBAI,
+                                     IMP.CODCID,
+                                     IMV.IMVCEP,
+                                     IMP.AD_EDGCOD)
+            PROPEND,
+         FSP_FORMATAR_CPF_CNPJ (IMP.CGC_CPF) CNPJ_CPF_IMP,
+         FSP_FORMATAR_CPF_CNPJ (INQ.CGC_CPF) CNPJ_CPF_INQ,
+         REP.TIMCONTRATOLOC,
+         (SELECT  UPPER ( NVL (PROC.RAZAOSOCIAL, PROC.NOMEPARC)) FROM TGFPAR PROC WHERE PROC.CODPARC = PROP.IMPPROCURADOR) PROCURADOR,
+         LOC.LOCPASTA,
+         (SELECT (LCRDATAINICIO+899)
+            FROM TIMLCR
+           WHERE TIMLCR.LCRCONTRATO = LOC.LOCCODIGO
+                 AND TIMLCR.LCRCONTADOR =
+                       (SELECT MAX (LCR2.LCRCONTADOR)
+                          FROM TIMLCR LCR2
+                         WHERE LCR2.LCRCONTRATO = TIMLCR.LCRCONTRATO))
+            AS DTVIGENCIALOC,
+         ALU.DTVENC,
+         REP.DTVENC DTVENC_REP,
+         NVL (REP.NOSSONUM, '') AS NCHEQUE,
+         ALU.TIMDHBAIXA,
+         REP.DHBAIXA,
+         ALU.TIMPARCELA,
+         REP.HISTORICO,
+         PROP.IMPPERCENTUAL || '% de ' || DTL.DTLCOMPLEMENTO COMPLEMENTO,
+         HCB.HCBHISTORICO
+         || CASE
+               WHEN DTL.DTLHISTORICO = 2 THEN ' ' || DTL.DTLCOMPLEMENTO
+               ELSE ''
+            END
+            AS HCBHISTORICO,
+         (CASE DTL.DTLREPASSAPARA
+             WHEN 'Locador'
+             THEN
+                (CASE
+                    WHEN DTL.DTLHISTORICO = 2 AND CALCVIEW IN ('N','C')
+                    THEN
+                       DTL.DTLVALOR
+                       - NVL (
+                            (SELECT DTL2.DTLVALOR
+                               FROM TIMDTL DTL2
+                              WHERE DTL.DTLPARCELA = DTL2.DTLPARCELA
+                                    AND DTL2.DTLHISTORICO = 55),
+                            0)
+                    ELSE
+                       DTL.DTLVALOR
+                 END)
+          END)
+            CREDITO,
+         (CASE DTL.DTLRECEBEDE
+             WHEN 'Locador'
+             THEN
+                (CASE
+                    WHEN DTL.DTLHISTORICO = 3
+                         AND (DTL.DTLDETALHAMENTO, DTL.CALCVIEW) IN
+                                  ( (SELECT DTLCODIGO, 'A'
+                                       FROM VIMDTL_ADM DTL2
+                                      WHERE DTL2.DTLHISTORICO = 2  AND CALCVIEW  IN ('N','C')
+                                            AND DTL2.DTLPARCELA =
+                                                  DTL.DTLPARCELA))
+                    THEN
+                       DTL.DTLVALOR
+                       - NVL (
+                            (SELECT DTLVALOR
+                               FROM VIMDTL_ADM DTL2
+                              WHERE DTL2.DTLHISTORICO = 3
+                                    AND DTL2.DTLPARCELA = DTL.DTLPARCELA
+                                    AND DTLDETALHAMENTO IN
+                                             (SELECT DTLCODIGO
+                                                FROM TIMDTL DTL3
+                                               WHERE DTL3.DTLPARCELA =
+                                                        DTL2.DTLPARCELA
+                                                     AND DTL3.DTLHISTORICO = 55)),
+                            0)
+                    ELSE
+                       DTL.DTLVALOR
+                 END)
+                * (-1)
+          END)
+            DEBITO,
+         (CASE
+             WHEN PROP.IMPCODTIPTIT <> 0
+             THEN
+                DESCRTIPTIT
+             ELSE
+                (CASE PROP.IMPFORMADEREPASSE
+                    WHEN 0 THEN 'Busca na Imobiliária'
+                    WHEN 1 THEN 'Depósito Bancário'
+                    WHEN 2 THEN 'Doc'
+                    WHEN 3 THEN 'Transferência'
+                    ELSE TO_CHAR (IMPFORMADEREPASSE)
+                 END)
+          END)
+         || (CASE
+                WHEN PROP.IMPCODTIPTIT = 3 THEN ' ' || NVL (REP.NOSSONUM, '')
+             END)
+            TIPOREPASSE,
+         BCO.ABREVIATURA,
+
+	case when tim_verifica_banco_procurador(rep.nufin, rep.codparc) is null then 'Receber no caixa'
+
+	ELSE
+                  --BCO.CODBCO
+	        TIM_VERIFICA_BANCO_PROCURADOR(REP.NUFIN, REP.CODPARC)
+               || ' - '
+               || TIM_VERIFICA_ABREV_PROCURADOR(REP.NUFIN, REP.CODPARC)
+	    --|| BCO.ABREVIATURA
+               || ' - ('
+               || FSP_FORMATAR_AGENCIA(TIM_VERIFICA_AGEN_PROCURADOR(REP.NUFIN, REP.CODPARC))
+	     --|| FSP_FORMATAR_AGENCIA (CBL.CBLAGENCIA)
+               || ') '
+	     --|| CBL.CBLCONTACORRENTE
+	     || TIM_VERIFICA_CTA_PROCURADOR(REP.NUFIN, REP.CODPARC)
+	     || ' - '
+	     || TIM_VERIF_DIGCTA_PROCURADOR(REP.NUFIN, REP.CODPARC)
+
+
+                         	         END
+            DADOSBANCARIOS,
+(CASE WHEN CBL.CBLTIPOCONTA='P' THEN 'Conta Poupança'WHEN CBL.CBLTIPOCONTA='C' THEN 'Conta Corrente' END) AS TIPOCONTA,
+         EXTENSO_MONETARIO (REP.VLRDESDOB) SALDOEXTENSO
+    FROM TGFFIN REP
+         INNER JOIN TGFFIN ALU
+            ON (REP.TIMNUFINORIG = ALU.NUFIN)
+         INNER JOIN TIMLOC LOC
+            ON (REP.TIMCONTRATOLOC = LOC.LOCCODIGO)
+         INNER JOIN TGFPAR INQ
+            ON (ALU.CODPARC = INQ.CODPARC)
+         INNER JOIN TGFPAR IMP
+            ON (IMP.CODPARC = REP.CODPARC)
+         INNER JOIN VIMIMV IMV
+            ON (IMV.IMVCODIGO = LOC.LOCIMOVEL)
+         INNER JOIN VIMDTL_adm DTL
+            ON (DTL.DTLPARCELA = REP.NUFIN
+                AND DTLHISTORICO <>
+                      NVL ( (SELECT INTEIRO
+                               FROM TSIPAR
+                              WHERE CHAVE = 'TIMHISDTLREPPRO' AND CODUSU = 0),
+                           4))
+         INNER JOIN TIMHCB HCB
+            ON (DTL.DTLHISTORICO = HCB.HCBCODIGO)
+         INNER JOIN TIMIMP PROP
+            ON (PROP.IMPCONTRATO = LOC.LOCCONTRATOADM
+                AND PROP.IMPPROPRIETARIO = REP.CODPARC)
+         LEFT JOIN TGFTIT TIT
+            ON (TIT.CODTIPTIT = REP.CODTIPTIT)
+         LEFT JOIN TIMCBL CBL
+            ON (CBL.CBLCODIGO = PROP.IMPCONTACORRENTE
+                AND CBL.CBLLOCADOR = REP.CODPARC)
+	         LEFT JOIN TSIBCO BCO
+            ON (BCO.CODBCO = CBL.CBLBANCO)
+         INNER JOIN TIMIMB IMB
+            ON (LOC.LOCIMOBILIARIA = IMB.IMBCODIGO)
+         INNER JOIN TSIEMP EMP
+            ON (IMB.IMBCODEMP = EMP.CODEMP)
+         INNER JOIN TSICID CID
+            ON (EMP.CODCID = CID.CODCID)
+         INNER JOIN (  SELECT 1 DUPLICAR FROM DUAL
+                     UNION ALL
+                       SELECT 2 DUPLICAR FROM DUAL)
+            ON (1 = 1)
+   WHERE     REP.TIMORIGEM = 'RP'
+         AND REP.NUFIN = $P{NUF}
+         AND REP.RECDESP <> 0
+         AND (DTLRECEBEDE = 'Locador' OR DTLREPASSAPARA = 'Locador')
+         AND DTL.DTLHISTORICO <> 55
+         AND (DTL.DTLDETALHAMENTO, DTL.CALCVIEW) NOT IN
+                  (SELECT DTLCODIGO, 'A'
+                     FROM VIMDTL_ADM DTL2
+                    WHERE DTL2.DTLHISTORICO = 55
+                          AND DTL2.DTLPARCELA = DTL.DTLPARCELA)
+ORDER BY
+DUPLICAR, NVL (DTLDETALHAMENTO, DTLCODIGO), DTL.CALCVIEW DESC]]>
+	</queryString>
+	<field name="DUPLICAR" class="java.math.BigDecimal"/>
+	<field name="ASSINATURA" class="java.lang.String"/>
+	<field name="NUFIN" class="java.math.BigDecimal"/>
+	<field name="CODPARC" class="java.math.BigDecimal"/>
+	<field name="SALDO" class="java.math.BigDecimal"/>
+	<field name="CONTRATO" class="java.math.BigDecimal"/>
+	<field name="CPF_CNPJ_LABEL_IMP" class="java.lang.String"/>
+	<field name="CPF_CNPJ_LABEL_INQ" class="java.lang.String"/>
+	<field name="TIMNUFINORIG" class="java.math.BigDecimal"/>
+	<field name="INQUILINO" class="java.lang.String"/>
+	<field name="LOCADOR" class="java.lang.String"/>
+	<field name="CGC_CPF" class="java.lang.String"/>
+	<field name="NOMECID" class="java.lang.String"/>
+	<field name="GARANTIDO" class="java.lang.String"/>
+	<field name="GIGPDE" class="java.lang.String"/>
+	<field name="IMVDESCRICAOCOMPLETA" class="java.lang.String"/>
+	<field name="PROPEND" class="java.lang.String"/>
+	<field name="CNPJ_CPF_IMP" class="java.lang.String"/>
+	<field name="CNPJ_CPF_INQ" class="java.lang.String"/>
+	<field name="TIMCONTRATOLOC" class="java.math.BigDecimal"/>
+	<field name="PROCURADOR" class="java.lang.String"/>
+	<field name="LOCPASTA" class="java.math.BigDecimal"/>
+	<field name="DTVIGENCIALOC" class="java.sql.Timestamp"/>
+	<field name="DTVENC" class="java.sql.Timestamp"/>
+	<field name="DTVENC_REP" class="java.sql.Timestamp"/>
+	<field name="NCHEQUE" class="java.lang.String"/>
+	<field name="TIMDHBAIXA" class="java.sql.Timestamp"/>
+	<field name="DHBAIXA" class="java.sql.Timestamp"/>
+	<field name="TIMPARCELA" class="java.math.BigDecimal"/>
+	<field name="HISTORICO" class="java.lang.String"/>
+	<field name="COMPLEMENTO" class="java.lang.String"/>
+	<field name="HCBHISTORICO" class="java.lang.String"/>
+	<field name="CREDITO" class="java.math.BigDecimal"/>
+	<field name="DEBITO" class="java.math.BigDecimal"/>
+	<field name="TIPOREPASSE" class="java.lang.String"/>
+	<field name="ABREVIATURA" class="java.lang.String"/>
+	<field name="DADOSBANCARIOS" class="java.lang.String"/>
+	<field name="TIPOCONTA" class="java.lang.String"/>
+	<field name="SALDOEXTENSO" class="java.lang.String"/>
+	<variable name="GROUP_COUNT" class="java.lang.Integer" resetType="Group" resetGroup="DUPLICAR" incrementType="Report" calculation="Count"/>
+	<variable name="SALDOI" class="java.math.BigDecimal" resetType="Group" resetGroup="DUPLICAR" calculation="Sum">
+		<variableExpression><![CDATA[($F{CREDITO}==null?BigDecimal.ZERO:$F{CREDITO}).add($F{DEBITO}==null?BigDecimal.ZERO:$F{DEBITO})]]></variableExpression>
+	</variable>
+	<variable name="TOTALCREDITO" class="java.math.BigDecimal" resetType="Group" resetGroup="DUPLICAR" calculation="Sum">
+		<variableExpression><![CDATA[($F{CREDITO} == null?BigDecimal.ZERO: $F{CREDITO})]]></variableExpression>
+	</variable>
+	<variable name="TOTALDEBITO" class="java.math.BigDecimal" resetType="Group" resetGroup="DUPLICAR" calculation="Sum">
+		<variableExpression><![CDATA[($F{DEBITO} == null?BigDecimal.ZERO: $F{DEBITO})]]></variableExpression>
+	</variable>
+	<group name="DUPLICAR" keepTogether="true">
+		<groupExpression><![CDATA[$F{DUPLICAR}]]></groupExpression>
+		<groupHeader>
+			<band height="205">
+				<staticText>
+					<reportElement x="0" y="14" width="588" height="35" uuid="79575b3e-176b-41c6-a1d6-906662c2efe9"/>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="24" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Recibos de Repasse]]></text>
+				</staticText>
+				<textField pattern="EEE - dd/MM/yyyy HH.mm.ss">
+					<reportElement x="193" y="49" width="237" height="12" uuid="17fef105-4c9a-420f-a0fe-902281a2c295"/>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="7"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{GIGPDE}+" de "+new SimpleDateFormat("dd/MM/yyyy").format($F{DTVENC_REP})]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="33" y="63" width="72" height="15" uuid="d2d7170d-e61f-46dc-9be2-e90134b16635"/>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font size="10" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Locador(a): ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="33" y="154" width="72" height="15" uuid="0d1f3d0d-8e59-46bc-8f32-5e1d5ac37bb2"/>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font size="10" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Imóvel: ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="33" y="137" width="72" height="15" uuid="b6e95230-2190-48d8-9f11-c56124f624d7"/>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font size="10" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Locatário: ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="33" y="173" width="72" height="15" uuid="0a6b9849-747c-48b0-8d01-865d8c948420"/>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font size="10" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Contrato: ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="412" y="173" width="72" height="15" uuid="d6d6500c-c08e-4ad0-9b59-842727af846a"/>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font size="10" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Pasta: ]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="106" y="63" width="312" height="15" uuid="4bda41cb-df43-4f50-b39d-213ab3722813"/>
+					<textElement verticalAlignment="Top"/>
+					<textFieldExpression><![CDATA[$F{LOCADOR}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement stretchType="RelativeToBandHeight" x="106" y="154" width="482" height="15" uuid="5c2cd7b1-a5f0-4dad-a096-943518d85d4c"/>
+					<textElement verticalAlignment="Top"/>
+					<textFieldExpression><![CDATA[$F{IMVDESCRICAOCOMPLETA}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="106" y="137" width="324" height="15" uuid="a8137022-ecac-4a4e-ad66-2fbeab80e401"/>
+					<textElement verticalAlignment="Top"/>
+					<textFieldExpression><![CDATA[$F{INQUILINO}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="106" y="173" width="56" height="15" uuid="771f97e4-13a0-43c9-af55-f43030b4e368"/>
+					<textElement verticalAlignment="Top"/>
+					<textFieldExpression><![CDATA[$F{TIMCONTRATOLOC}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="484" y="173" width="105" height="15" uuid="9a29d114-af15-4c04-a4b2-08d002bb5a91"/>
+					<textElement verticalAlignment="Top"/>
+					<textFieldExpression><![CDATA[$F{LOCPASTA}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="28" y="193" width="57" height="11" uuid="9a71bf14-a112-4bff-9e9f-6fb814d86f0a"/>
+					<textElement verticalAlignment="Bottom">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Vencimento]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Transparent" x="277" y="173" width="55" height="15" forecolor="#000000" backcolor="#FFFFFF" uuid="cc663e5c-6377-42dd-9a76-ae6ecebb9026"/>
+					<textElement verticalAlignment="Top" rotation="None" markup="none">
+						<font fontName="SansSerif" size="10" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+						<paragraph lineSpacing="Single"/>
+					</textElement>
+					<text><![CDATA[Garantido:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="117" y="193" width="124" height="11" uuid="cd134071-03d8-4bbc-bdec-4bb3aa43f93c"/>
+					<textElement verticalAlignment="Bottom">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Histórico]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="462" y="193" width="28" height="11" uuid="8746d090-3b71-45b0-a87b-a0447c4f88dc"/>
+					<textElement textAlignment="Center" verticalAlignment="Bottom">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Parc]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="490" y="193" width="47" height="11" uuid="a8761fc6-b539-49b5-aa83-e7c8202878ac"/>
+					<textElement textAlignment="Center" verticalAlignment="Bottom">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Crédito]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="537" y="193" width="47" height="11" uuid="d6bf74de-2d77-4cb7-93f1-a60a072f8979"/>
+					<textElement textAlignment="Center" verticalAlignment="Bottom">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Débito]]></text>
+				</staticText>
+				<textField pattern="EEE - dd/MM/yyyy HH.mm.ss">
+					<reportElement x="338" y="1" width="247" height="14" uuid="00b33d54-bc06-44b5-bcff-57110eb9e78a"/>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Emissão: "+new SimpleDateFormat("EEE - dd/MM/yyyy | HH:mm:ss").format(new java.util.Date())]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="458" y="63" width="130" height="15" uuid="53501794-fedf-4162-a6d6-441b1d1046f5"/>
+					<textElement verticalAlignment="Top"/>
+					<textFieldExpression><![CDATA[$F{CNPJ_CPF_IMP}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="418" y="63" width="40" height="15" uuid="5b723180-033f-45db-9b9d-080460a6b289"/>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{CPF_CNPJ_LABEL_IMP}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="299" y="110" width="58" height="15" uuid="6fe3f942-7018-4a01-a10d-a68769e31fdc"/>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font size="10" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Procurador(a): ]]></text>
+				</staticText>
+				<textField pattern="" isBlankWhenNull="false">
+					<reportElement mode="Transparent" x="461" y="137" width="126" height="15" forecolor="#000000" backcolor="#FFFFFF" uuid="1a67ce9c-ef88-472a-849f-c176852caf96"/>
+					<textElement textAlignment="Left" verticalAlignment="Top" rotation="None" markup="none">
+						<font fontName="SansSerif" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+						<paragraph lineSpacing="Single"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{CNPJ_CPF_INQ}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="2" y="1" width="245" height="13" uuid="b1c9844e-e94c-4dac-9bf7-4ab07688ea8f"/>
+					<text><![CDATA[Roca Administradora de Imóveis Ltda.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="22" y="96" width="83" height="14" uuid="c46211b3-744e-4722-911a-961e3c5fdab5"/>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font size="10" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Tipo de repasse: ]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="105" y="96" width="250" height="14" uuid="b3f679fc-e379-4e5c-aef3-d4e1f7f7d311"/>
+					<textElement verticalAlignment="Top">
+						<font size="10" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{TIPOREPASSE}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="2" y="111" width="36" height="14" uuid="4abc4cfc-822e-467b-8e81-5b1028f5085b"/>
+					<textElement verticalAlignment="Top">
+						<font size="10" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Banco: ]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="357" y="111" width="230" height="14" uuid="baf4753b-5748-4871-b68e-89464d1ea487"/>
+					<textElement verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{PROCURADOR}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="430" y="137" width="31" height="15" uuid="8c6fa059-2234-4f32-a56a-697670f705c1"/>
+					<textElement textAlignment="Right">
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{CPF_CNPJ_LABEL_INQ}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="166" y="173" width="46" height="15" uuid="6cdb50f9-43ef-484a-b072-fd4b7816fa99"/>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font size="10" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Vigência:]]></text>
+				</staticText>
+				<textField pattern="dd/MM/yyyy" isBlankWhenNull="false">
+					<reportElement mode="Transparent" x="214" y="173" width="53" height="15" forecolor="#000000" backcolor="#FFFFFF" uuid="9f6cffcd-6d15-4e4b-ad75-9f6025f3009d"/>
+					<textElement textAlignment="Left" verticalAlignment="Top" rotation="None" markup="none">
+						<font fontName="SansSerif" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+						<paragraph lineSpacing="Single"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{DTVIGENCIALOC}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement mode="Transparent" x="31" y="81" width="71" height="15" forecolor="#000000" backcolor="#FFFFFF" uuid="078417dd-8ba2-467d-89a7-c40c71b6b12c"/>
+					<textElement textAlignment="Right" verticalAlignment="Top" rotation="None" markup="none">
+						<font fontName="SansSerif" size="10" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+						<paragraph lineSpacing="Single"/>
+					</textElement>
+					<text><![CDATA[Endereço:]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="106" y="81" width="481" height="15" uuid="4dda91ae-abdd-4d4d-81ce-2309c9bca568"/>
+					<textFieldExpression><![CDATA[$F{PROPEND}]]></textFieldExpression>
+				</textField>
+				<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+					<reportElement x="338" y="173" width="80" height="15" uuid="a40723be-d551-4503-b401-4a13197218ed"/>
+					<textFieldExpression><![CDATA[$F{GARANTIDO}]]></textFieldExpression>
+				</textField>
+				<textField pattern="" isBlankWhenNull="true">
+					<reportElement mode="Transparent" x="214" y="110" width="85" height="15" forecolor="#000000" backcolor="#FFFFFF" uuid="24ef62d4-e6e5-438a-a54a-53a021808263"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+						<font fontName="SansSerif" size="7" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+						<paragraph lineSpacing="Single"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{TIPOCONTA}]]></textFieldExpression>
+				</textField>
+				<textField pattern="" isBlankWhenNull="true">
+					<reportElement mode="Transparent" x="38" y="111" width="174" height="14" forecolor="#000000" backcolor="#FFFFFF" uuid="155d8eed-0640-424d-9d65-7cadc5f367f6"/>
+					<textElement verticalAlignment="Middle" rotation="None" markup="none">
+						<font fontName="SansSerif" size="7" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+						<paragraph lineSpacing="Single"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{DADOSBANCARIOS}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="109">
+				<staticText>
+					<reportElement x="0" y="40" width="584" height="13" uuid="89cf6f3a-7596-4d78-945a-67422c81e891"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="10" isBold="true"/>
+					</textElement>
+					<text><![CDATA[RECIBO]]></text>
+				</staticText>
+				<line>
+					<reportElement x="11" y="1" width="576" height="1" uuid="0fe20b4f-119a-4ff1-b108-0ac6adf27965"/>
+				</line>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="540" y="28" width="45" height="12" uuid="f54688f6-1ca0-4fe2-93b7-de5bb2597b59"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{SALDOI}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true">
+					<reportElement x="20" y="56" width="562" height="25" uuid="ebf1e501-de38-40cf-ba50-559179a48afb"/>
+					<textElement verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Recebi a quantia de R$ "+ new DecimalFormat("#,##0.00;-#,##0.00").format($F{SALDO})+" ("+$F{SALDOEXTENSO}+")"+" referente ao saldo apurado no discriminativo dos lançamentos."]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement x="77" y="92" width="280" height="1" uuid="3deb0a40-590c-4630-ad24-7726f9c19ebf"/>
+				</line>
+				<staticText>
+					<reportElement x="181" y="93" width="66" height="13" uuid="2552146a-bbe1-4879-81bd-7c1883b8acf6"/>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[Assinatura]]></text>
+				</staticText>
+				<line>
+					<reportElement x="0" y="106" width="588" height="1" uuid="2669c63c-da0d-4c15-b658-adedde3137c1"/>
+				</line>
+				<staticText>
+					<reportElement x="499" y="28" width="41" height="12" uuid="9623bc38-de7c-4b87-b208-062297c1b778"/>
+					<textElement verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<text><![CDATA[A Receber]]></text>
+				</staticText>
+				<line>
+					<reportElement x="388" y="91" width="42" height="1" uuid="f3bb23b5-b16f-4fe8-a5de-433bafb81100"/>
+				</line>
+				<line>
+					<reportElement x="457" y="91" width="42" height="1" uuid="1dcf2bba-6253-4987-9d15-2570e9a5d5d5"/>
+				</line>
+				<line>
+					<reportElement x="519" y="91" width="42" height="1" uuid="463cd936-bbb2-44e0-a67c-c621635ecfd6"/>
+				</line>
+				<staticText>
+					<reportElement x="446" y="93" width="66" height="13" uuid="6740b159-2d36-4800-989a-f16789a11636"/>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[Liberado]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="83" width="22" height="11" uuid="77dd94d2-b893-4228-8e93-229adee3de4a"/>
+					<textElement>
+						<font size="8"/>
+					</textElement>
+					<text><![CDATA[Data]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="22" y="83" width="52" height="11" uuid="8383dabc-bcf9-4742-b7cb-16222fad3892"/>
+					<textElement>
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[___/___/____]]></text>
+				</staticText>
+				<textField pattern="¤ #,##0.00" isBlankWhenNull="true">
+					<reportElement x="487" y="2" width="49" height="12" uuid="61a58648-76ce-4a3c-95d3-69b263e76eb1"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="7" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{TOTALCREDITO}]]></textFieldExpression>
+				</textField>
+				<textField pattern="¤ #,##0.00" isBlankWhenNull="true">
+					<reportElement mode="Transparent" x="537" y="2" width="50" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="5636d9ae-0d78-4ef0-8355-41e85e73f4f4"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+						<font fontName="SansSerif" size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+						<paragraph lineSpacing="Single"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{TOTALDEBITO}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<detail>
+		<band height="14">
+			<rectangle>
+				<reportElement stretchType="RelativeToBandHeight" mode="Opaque" x="0" y="0" width="589" height="14" forecolor="#000000" backcolor="#CCCCCC" uuid="d8c52320-c0b9-4ae3-b4e8-fafbefd50710">
+					<printWhenExpression><![CDATA[($V{DUPLICAR_COUNT}.intValue() % 2 == 0) ? Boolean.FALSE : Boolean.TRUE]]></printWhenExpression>
+				</reportElement>
+				<graphicElement>
+					<pen lineColor="#FFFFFF"/>
+				</graphicElement>
+			</rectangle>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement x="27" y="1" width="55" height="13" uuid="076a6d74-4f7a-4e24-8b1a-04b30ceae1ad">
+					<printWhenExpression><![CDATA[($V{DUPLICAR_COUNT}.intValue() == 1)]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{DTVENC}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="115" y="1" width="343" height="12" uuid="ea2590e3-a01f-4f61-8857-8048ba273105"/>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{HCBHISTORICO}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="460" y="1" width="28" height="12" uuid="2bbce1b0-1e4f-4aca-b535-efb80c34be55">
+					<printWhenExpression><![CDATA[($V{DUPLICAR_COUNT}.intValue() == 1)]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{TIMPARCELA}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="488" y="1" width="47" height="12" uuid="497457ba-57ba-4194-9e13-56aebd7bf92f"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{CREDITO}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="535" y="1" width="47" height="12" uuid="e9ecc6ab-55e5-4c52-801a-356bc526d866"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{DEBITO}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>
