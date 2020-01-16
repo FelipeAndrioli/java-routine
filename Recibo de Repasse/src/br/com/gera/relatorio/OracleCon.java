@@ -8,12 +8,12 @@ public class OracleCon {
 
 	public java.sql.Connection getConnection() {
 		
-		System.out.println("Procurando por conex„o com Banco de Dados Oracle...");
+		System.out.println("Procurando por conex√£o com Banco de Dados Oracle...");
 		
 		try {
 			Class.forName("oracle.jdbc.driver.OracleDriver");
 		}catch(ClassNotFoundException e) {
-			System.out.println("Banco de Dados Oracle n„o encontrado!!!");
+			System.out.println("Banco de Dados Oracle n√£o encontrado!!!");
 			e.printStackTrace();
 		}
 		
@@ -21,26 +21,25 @@ public class OracleCon {
 		Connection conn = null;
 		
 		try {
-			//conn = DriverManager.getConnection("jdbc:oracle:thin:@177.85.37.157:1521:ORCL", "sankhya", "tecsis");
-			conn = DriverManager.getConnection("jdbc:oracle:thin:@10.100.69.243:1521:ORCL", "sankhya", "tecsis");
+			conn = DriverManager.getConnection("jdbd:oracle:thin:@"/*ipaddress*/, /*Database name*/"","" /*Database Password*/);
 			
 			/*
-			 * Para a rotina conectar no banco estando dentro do servidor o endereÁo de IP muda,
-			 * sendo assim a segunda vari·vel conn armazena o IP de dentro do servidor e a primeira
-			 * vari·vel conn armazena o endereÁo IP de fora do servidor
+			 * Para a rotina conectar no banco estando dentro do servidor o endere√ßo de IP muda,
+			 * sendo assim a segunda vari√°vel conn armazena o IP de dentro do servidor e a primeira
+			 * vari√°vel conn armazena o endere√ßo IP de fora do servidor
 			 * 
 			 * */
 			
 			System.out.println(conn);
 		}catch(SQLException e) {
-			System.out.println("Falha ao Conectar! Cheque o usu·rio e a senha");
+			System.out.println("Falha ao Conectar! Cheque o usu√°rio e a senha");
 			e.printStackTrace();
 		}
 		
 		if(conn != null) {
-			System.out.println("Conex„o Bem Sucedida!");
+			System.out.println("Conex√£o Bem Sucedida!");
 		}else {
-			System.out.println("N„o foi possÌvel se conectar!");
+			System.out.println("N√£o foi poss√≠vel se conectar!");
 		}
 		
 		return conn;
