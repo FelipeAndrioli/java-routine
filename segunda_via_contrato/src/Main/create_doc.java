@@ -1,25 +1,39 @@
 package Main;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import javax.imageio.ImageIO;
+import javax.imageio.stream.ImageInputStream;
+
+import org.apache.commons.compress.archivers.dump.InvalidFormatException;
 import org.apache.poi.util.Units;
+import org.apache.poi.xwpf.model.XWPFHeaderFooterPolicy;
 import org.apache.poi.xwpf.usermodel.Borders;
 import org.apache.poi.xwpf.usermodel.Document;
 import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
 import org.apache.poi.xwpf.usermodel.VerticalAlign;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFHeader;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFPicture;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.omg.CORBA_2_3.portable.InputStream;
+
+
+
+import org.apache.poi.xwpf.model.XWPFHeaderFooterPolicy;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTSectPr;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPageMar;
 
 /*
  * 
@@ -62,6 +76,73 @@ public class create_doc {
 			FileOutputStream fos = new FileOutputStream(file.getAbsolutePath());
 			
 			XWPFDocument doc = new XWPFDocument();
+		
+			//======================= Creating Header ===============================
+			
+			XWPFHeaderFooterPolicy headerFooterPolicy = doc.getHeaderFooterPolicy();
+			if(headerFooterPolicy == null) {
+				headerFooterPolicy = doc.createHeaderFooterPolicy();
+			}
+			
+			XWPFHeader header = headerFooterPolicy.createHeader(XWPFHeaderFooterPolicy.DEFAULT);
+			XWPFParagraph headerParagraph = header.createParagraph();
+			headerParagraph.setAlignment(ParagraphAlignment.CENTER);
+			headerParagraph.setSpacingBeforeLines(0);
+			XWPFRun headerParagraphRun = headerParagraph.createRun();
+			
+			File imageFile = new File("C:\\RocaDocLogo.jpg");
+			int width = 120;
+			int height = 85;
+			String imgName = null;
+			int imgFormat = 0;
+			
+			try {
+				System.out.println("Coletando dados da imagem...");
+				BufferedImage bimg = ImageIO.read(imageFile);
+				imgName = imageFile.getName();
+				imgFormat = Document.PICTURE_TYPE_JPEG;
+			} catch(FileNotFoundException e) {
+				e.printStackTrace();
+			}
+			
+			headerParagraphRun.addBreak();
+			headerParagraphRun.addPicture(new FileInputStream(imageFile), imgFormat, imgName, Units.toEMU(width), Units.toEMU(height));
+			
+			CTSectPr sectPr = doc.getDocument().getBody().getSectPr();
+			if(sectPr == null) {
+				sectPr = doc.getDocument().getBody().addNewSectPr();
+			}
+			
+			CTPageMar pageMar = sectPr.getPgMar();
+			if(pageMar == null) {
+				pageMar = sectPr.addNewPgMar();
+			}
+			
+			pageMar.setLeft(BigInteger.valueOf(0));
+			pageMar.setRight(BigInteger.valueOf(0));
+			pageMar.setTop(BigInteger.valueOf(0));
+			pageMar.setBottom(BigInteger.valueOf(0));
+			
+			pageMar.setHeader(BigInteger.valueOf(908));
+			
+			/*TODO
+			 * 
+			 * Set the margin of the header to the minimum possible
+			 * 
+			 * Style of phrases to include in the middle of a paragraph
+			 * different from the style of the rest
+			 * 
+			 * */
+			
+			//======================= End of the header ==============================
+			
+			XWPFParagraph paragraphOne = doc.createParagraph();
+			paragraphOne.setAlignment(ParagraphAlignment.CENTER);
+			paragraphOne.setFirstLineIndent(0);
+			XWPFRun paragraphOneRunOne = paragraphOne.createRun();
+			paragraphOneRunOne.setText("Teste de cabeçalho");
+			
+			/*
 			
 			XWPFParagraph paragraphOne = doc.createParagraph();
 		
@@ -95,31 +176,32 @@ public class create_doc {
 			XWPFRun paragraphTwoRunOne = paragraphTwo.createRun();
 			paragraphTwoRunOne.setText("And this is paragraph two");
 			
-			
-			
-			//FileInputStream picturePath = new FileInputStream("/segunda_via_contrato/src/Main/RocaDocLogo.jpg");
-			
-			FileInputStream picturePath = new FileInputStream("/segunda_via_contrato/src/Main/RocaDocLogo.jpg");
-			
-			
 			XWPFParagraph paragraphThree = doc.createParagraph();
-			paragraphThree.setAlignment(ParagraphAlignment.DISTRIBUTE);
+			paragraphThree.setAlignment(ParagraphAlignment.CENTER);
 			paragraphThree.setIndentationRight(200);
 			XWPFRun paragraphThreeRunOne = paragraphThree.createRun();
-			paragraphThreeRunOne.addPicture(picturePath, Document.PICTURE_TYPE_JPEG, "RocaDocLogo", Units.toEMU(200), Units.toEMU(200));
 			
-			/*
-			 * InputStream stream = getClass().getResourceAsStream("/br/com/gera/relatorio/RelacaoRendimentos-DIMOB_NEW.jasper");
-			 * 
-			 * addPicture(java.io.InputStream pictureData, int pictureType, java.lang.String filename, int width, int height)
-			 * Adds a picture to the run.
-			 * 
-			 * */
+			File imageFile = new File("C:\\RocaDocLogo.jpg");
+			int width = 100;
+			int height = 100;
+			String imgName = null;
+			int imgFormat = 0;
 			
-			//FileInputStream picturePath = new FileInputStream("/segunda_via_contrato/src/Main/RocaDocLogo.jpg");
-			//paragraphOneRunOne.addPicture(picturePath, Document.PICTURE_TYPE_JPEG, "RocaDocLogo", Units.toEMU(200), Units.toEMU(200));
+			try {
+				System.out.println("Coletando dados da imagem...");
+				BufferedImage bimg1 = ImageIO.read(imageFile);
+				//width = bimg1.getWidth();
+				//height = bimg1.getHeight();
+				imgName = imageFile.getName();
+				imgFormat = Document.PICTURE_TYPE_JPEG;
+			} catch(FileNotFoundException e) {
+				e.printStackTrace();
+			}
 			
+			paragraphThreeRunOne.addBreak();
+			paragraphThreeRunOne.addPicture(new FileInputStream(imageFile), imgFormat, imgName, Units.toEMU(width), Units.toEMU(height));	
 			
+			*/
 			
 			try {
 				doc.write(fos);
@@ -144,11 +226,9 @@ public class create_doc {
 	}
 	
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		
-		//String diretorio = "C:\\Users\\felipe.andrioli.ROCA-IMOVEIS\\Desktop\\Destino\\";
+
 		createDocFile("C:\\Users\\felipe.andrioli.ROCA-IMOVEIS\\Desktop\\Destino\\DocxFile.docx");
-		createDocFile("C:\\Users\\felipe.andrioli.ROCA-IMOVEIS\\Desktop\\Destino\\DocFile.doc");
+		//createDocFile("C:\\Users\\felipe.andrioli.ROCA-IMOVEIS\\Desktop\\Destino\\DocFile.doc");
 	}
 
 }
